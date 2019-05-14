@@ -34,21 +34,19 @@ static inline void tc_adc_trigger_cb (struct tc_module *const module_inst)
 			asm("nop");
 		}
 		us_media   /= 50;							// Valor medio de los ultrasonidos medidos
-		temp_media /= 50;							// Valor medio de temperatura
+		temp_media /= 50;
+		/*basura /= 50;*/							// Valor medio de temperatura
 
 		adc_vals.cycles = 0;						// Restart counter value
-
-		// Debug purpouses 
-		//us_media   = (us_media*1650)/1023;
-		//temp_media = (temp_media*1650)/1023;		
-		
+		us_media   *= 1.61; 
+		temp_media *= 1.61;		
 		TC3->COUNT8.COUNT.reg = 0x00; 
-	
-		flg_adcRdy = true;
-		asm("nop");
-		
+				
 		sprintf(sensor_result.temperature, "Temperature: %lu mV\r\n", temp_media);
 		sprintf(sensor_result.ultrasounds, "Ultrasounds: %lu mV\r\n", us_media);
+		
+		flg_adcRdy = true;
+		asm("nop");
 	}
 	
 	// Lanza una conversión cada 24 uS
@@ -129,24 +127,19 @@ void configure_adc(void)
 	config_adc.clock_prescaler = ADC_CLOCK_PRESCALER_DIV4;
 	config_adc.resolution      = ADC_RESOLUTION_10BIT; 
 	config_adc.reference       = ADC_REFERENCE_INTVCC1;
-	config_adc.gain_factor     = ADC_GAIN_FACTOR_1X;
+	config_adc.gain_factor     = ADC_GAIN_FACTOR_2X;
 	config_adc.positive_input  = ADC_POSITIVE_INPUT_PIN16;
 	//config_adc.negative_input  = ADC_NEGATIVE_INPUT_PIN5;
 	//config_adc.differential_mode = true;
 	config_adc.freerunning     = false;
 	config_adc.left_adjust     = false;
-	config_adc.pin_scan.offset_start_scan    = 0x10;
+	config_adc.pin_scan.offset_start_scan    = 0;
 	config_adc.pin_scan.inputs_to_scan       = 3;
 
 	adc_init(&adc_instance, ADC, &config_adc);
-	
-	adc_instance.hw->INPUTCTRL.bit.MUXPOS = 0x10;
-	adc_instance.hw->INPUTCTRL.bit.MUXNEG = 0x18;
-	adc_instance.hw->INPUTCTRL.bit.INPUTSCAN = 3;
 
 	adc_enable(&adc_instance);
-	//ADC->INPUTCTRL.bit.INPUTOFFSET = 0x10;
-	//ADC->INPUTCTRL.bit.INPUTSCAN = 3;
+
     asm("nop");
 
 }// FIN
@@ -199,7 +192,9 @@ void adc_dma_example(void)
  	dma_add_descriptor(&example_resource, &example_descriptor);
 
 	adc_start_conversion(&adc_instance);
+	
 	tc_configuration();
+	
 	dma_start_transfer_job(&example_resource);
 }
 

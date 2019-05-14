@@ -335,9 +335,6 @@ void ble_csc_init(void )
 	/* Register the notification handler */
 	notify_recv_ntf_handler(csc_prf_report_ntf_cb);
 
- 	/* Init ADC */
- 	adc_dma_example();
-
 	/* Capturing the events  */
 	while(1){
 		if (m2m_ble_event_get(&ble_event, &gu8BleParam) == AT_BLE_SUCCESS)
@@ -358,7 +355,9 @@ int main (void)
 	//configure_console();
 	sio2host_init();
 	puts(STRING_HEADER);
-
+	
+	adc_dma_example();
+		
 	nm_bsp_init();
 
 	// Initialize WiFi interface first.
